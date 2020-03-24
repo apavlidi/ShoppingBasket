@@ -18,7 +18,7 @@ class BasketRepositoryTest {
   @BeforeEach
   void setUp() {
     repo = new BasketRepository();
-    basket = new Basket();
+    basket = new Basket("10/10/2020");
   }
 
   @Test

@@ -10,10 +10,13 @@ public class ShoppingBasketService {
 
   private final BasketRepository basketRepo;
   private final ProductService productService;
+  private DateService dateService;
 
-  public ShoppingBasketService(BasketRepository basketRepo, ProductService productService) {
+  public ShoppingBasketService(BasketRepository basketRepo, ProductService productService,
+      DateService dateService) {
     this.basketRepo = basketRepo;
     this.productService = productService;
+    this.dateService = dateService;
   }
 
   public void addItem(String userId, String productId, int quantity) {
@@ -31,7 +34,7 @@ public class ShoppingBasketService {
 
   private Runnable createBasketAddItemAndSave(String userId, String productId, int quantity) {
     return () -> {
-      Basket basket = new Basket();
+      Basket basket = new Basket(dateService.getDate());
       addItemToBasket(productId, quantity, basket);
       basketRepo.save(userId, basket);
     };

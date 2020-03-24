@@ -7,10 +7,12 @@ public class Basket {
 
   private Map<String, Product> products;
   private Map<String, Integer> productsQuantity;
+  private String creationDate;
 
-  public Basket() {
+  public Basket(String creationDate) {
     this.products = new HashMap<>();
     this.productsQuantity = new HashMap<>();
+    this.creationDate = creationDate;
   }
 
   public int size() {
@@ -29,5 +31,15 @@ public class Basket {
   public void addItem(Product product, int quantity) {
     products.put(product.getId(), product);
     productsQuantity.put(product.getId(), quantity);
+  }
+
+  public String getCreationDate() {
+    return creationDate;
+  }
+
+  public int getTotal() {
+    return productsQuantity.keySet().stream()
+        .mapToInt(productId -> products.get(productId).getPrice() * productsQuantity.get(productId))
+        .sum();
   }
 }

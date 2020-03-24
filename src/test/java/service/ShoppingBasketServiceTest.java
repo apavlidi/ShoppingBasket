@@ -21,16 +21,21 @@ import repository.BasketRepository;
 @ExtendWith(MockitoExtension.class)
 class ShoppingBasketServiceTest {
 
+  private static final String CREATION_DATE = "10/10/2020";
   @Mock
   BasketRepository repository;
 
   @Mock
   ProductService productService;
+
+  @Mock
+  DateService dateService;
+
   private ShoppingBasketService service;
 
   @BeforeEach
   void setUp() {
-    service = new ShoppingBasketService(repository, productService);
+    service = new ShoppingBasketService(repository, productService, dateService);
   }
 
   @Test
@@ -40,7 +45,7 @@ class ShoppingBasketServiceTest {
     int quantity = 1;
 
     Product product = new Product(productId);
-    Basket basket = new Basket();
+    Basket basket = new Basket(CREATION_DATE);
     given(productService.getProductById(productId)).willReturn(product);
     given(repository.getBasketByUserId(userId)).willReturn(Optional.of(basket));
 
@@ -80,7 +85,7 @@ class ShoppingBasketServiceTest {
   @Test
   public void get_basket_for_userId_asks_repository() {
     String userId = UUID.randomUUID().toString();
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(new Basket()));
+    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(new Basket(CREATION_DATE)));
 
     service.basketFor(userId);
 
@@ -92,9 +97,28 @@ class ShoppingBasketServiceTest {
     String userId = UUID.randomUUID().toString();
     given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
 
-    assertThrows(BasketNotFoundException.class, () -> {
-      service.basketFor(userId);
-    });
+    assertThrows(BasketNotFoundException.class, () -> service.basketFor(userId));
+  }
+
+  @Test
+  public void sets_creation_date_of_basket() {
+    String userId = UUID.randomUUID().toString();
+    String productId = UUID.randomUUID().toString();
+    Product product = new Product(productId);
+    int quantity = 1;
+
+    given(productService.getProductById(productId)).willReturn(product);
+    given(dateService.getDate()).willReturn("10/10/2020");
+    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
+
+    service.addItem(userId, productId, quantity);
+
+    ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
+    ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
+    verify(repository).save(userIdArgument.capture(), basketArgument.capture());
+    Basket savedBasket = basketArgument.getValue();
+
+    assertEquals("10/10/2020", savedBasket.getCreationDate());
   }
 
 }
