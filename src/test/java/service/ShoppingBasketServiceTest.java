@@ -1,17 +1,19 @@
 package service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import UI.Console;
 import domain.Basket;
-import domain.Product;
+
 import exceptions.BasketNotFoundException;
-import java.util.Optional;
+import domain.Product;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -21,21 +23,29 @@ import repository.BasketRepository;
 @ExtendWith(MockitoExtension.class)
 class ShoppingBasketServiceTest {
 
-  private static final String CREATION_DATE = "10/10/2020";
-  @Mock
-  BasketRepository repository;
+  private static final String CREATION_DATE = "2020-07-12";
+  public static final String USER_ID = UUID.randomUUID().toString();
 
   @Mock
-  ProductService productService;
+  private Console console;
 
   @Mock
-  DateService dateService;
+  private BasketRepository repository;
+
+  @Mock
+  private ProductService productService;
+
+  @Mock
+  private DateService dateService;
+
+  @Mock
+  private LogService logService;
 
   private ShoppingBasketService service;
 
   @BeforeEach
   void setUp() {
-    service = new ShoppingBasketService(repository, productService, dateService);
+    service = new ShoppingBasketService(repository, productService, dateService, logService);
   }
 
   @Test
@@ -108,7 +118,7 @@ class ShoppingBasketServiceTest {
     int quantity = 1;
 
     given(productService.getProductById(productId)).willReturn(product);
-    given(dateService.getDate()).willReturn("10/10/2020");
+    given(dateService.getDate()).willReturn("2020-07-12");
     given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
 
     service.addItem(userId, productId, quantity);
@@ -118,7 +128,24 @@ class ShoppingBasketServiceTest {
     verify(repository).save(userIdArgument.capture(), basketArgument.capture());
     Basket savedBasket = basketArgument.getValue();
 
-    assertEquals("10/10/2020", savedBasket.getCreationDate());
+    assertEquals("2020-07-12", savedBasket.getCreationDate());
+  }
+
+  @Test
+  public void logs_creation_date_on_new_basket() {
+    String userId = UUID.randomUUID().toString();
+    String productId = UUID.randomUUID().toString();
+    Product product = new Product(productId);
+    int quantity = 1;
+
+    given(productService.getProductById(productId)).willReturn(product);
+    given(dateService.getDate()).willReturn("2020-07-12");
+    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
+
+    service.addItem(userId, productId, quantity);
+
+    verify(logService)
+        .basketCreationDate("2020-07-12", userId);
   }
 
 }
