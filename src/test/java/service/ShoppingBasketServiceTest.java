@@ -1,19 +1,17 @@
 package service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import UI.Console;
 import domain.Basket;
-
-import exceptions.BasketNotFoundException;
 import domain.Product;
+import exceptions.BasketNotFoundException;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -25,9 +23,9 @@ class ShoppingBasketServiceTest {
 
   private static final String CREATION_DATE = "2020-07-12";
   public static final String USER_ID = UUID.randomUUID().toString();
-
-  @Mock
-  private Console console;
+  public static final int QUANTITY = 1;
+  public static final String HOBBIT_PRODUCT_ID = UUID.randomUUID().toString();
+  public static final Product THE_HOBBIT_PRODUCT = new Product(HOBBIT_PRODUCT_ID);
 
   @Mock
   private BasketRepository repository;
@@ -43,110 +41,97 @@ class ShoppingBasketServiceTest {
 
   private ShoppingBasketService service;
 
+  private ArgumentCaptor<Basket> basketArgumentCaptor;
+
   @BeforeEach
   void setUp() {
     service = new ShoppingBasketService(repository, productService, dateService, logService);
+    basketArgumentCaptor = ArgumentCaptor.forClass(Basket.class);
   }
 
   @Test
   public void addItem_adds_to_repository() {
-    String userId = UUID.randomUUID().toString();
-    String productId = UUID.randomUUID().toString();
-    int quantity = 1;
+    Basket basket = new Basket(CREATION_DATE, USER_ID);
+    given(productService.getProductById(HOBBIT_PRODUCT_ID)).willReturn(THE_HOBBIT_PRODUCT);
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.of(basket));
 
-    Product product = new Product(productId);
-    Basket basket = new Basket(CREATION_DATE, userId);
-    given(productService.getProductById(productId)).willReturn(product);
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(basket));
+    service.addItem(USER_ID, HOBBIT_PRODUCT_ID, QUANTITY);
 
-    service.addItem(userId, productId, quantity);
+    verify(repository).save(basketArgumentCaptor.capture());
+    verify(productService).getProductById(HOBBIT_PRODUCT_ID);
+    verify(repository).getBasketByUserId(USER_ID);
+  }
 
-    verify(productService).getProductById(productId);
-    verify(repository).getBasketByUserId(userId);
+  @Test
+  public void addItem_adds_to_repository_with_basket_contains_the_product() {
+    Basket basket = new Basket(CREATION_DATE, USER_ID);
+    given(productService.getProductById(HOBBIT_PRODUCT_ID)).willReturn(THE_HOBBIT_PRODUCT);
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.of(basket));
 
-    ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
-    ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(basketArgument.capture());
-    Basket savedBasket = basketArgument.getValue();
-    assertEquals(product, savedBasket.getProductById(productId));
-    assertEquals(quantity, savedBasket.getQuantityForProduct(productId));
+    service.addItem(USER_ID, HOBBIT_PRODUCT_ID, QUANTITY);
+
+    verify(repository).save(basketArgumentCaptor.capture());
+
+    Basket savedBasket = basketArgumentCaptor.getValue();
+    assertEquals(THE_HOBBIT_PRODUCT, savedBasket.getProductById(HOBBIT_PRODUCT_ID));
+    assertEquals(QUANTITY, savedBasket.getQuantityForProduct(HOBBIT_PRODUCT_ID));
   }
 
   @Test
   public void if_basket_does_not_exists_it_creates_one() {
-    String userId = UUID.randomUUID().toString();
-    String productId = UUID.randomUUID().toString();
-    Product product = new Product(productId);
-    int quantity = 1;
+    given(productService.getProductById(HOBBIT_PRODUCT_ID)).willReturn(THE_HOBBIT_PRODUCT);
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.empty());
 
-    given(productService.getProductById(productId)).willReturn(product);
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
+    service.addItem(USER_ID, HOBBIT_PRODUCT_ID, QUANTITY);
 
-    service.addItem(userId, productId, quantity);
+    verify(repository).save(basketArgumentCaptor.capture());
 
-    ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
-    ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(basketArgument.capture());
-    Basket savedBasket = basketArgument.getValue();
-    assertEquals(product, savedBasket.getProductById(productId));
-    assertEquals(quantity, savedBasket.getQuantityForProduct(productId));
+    Basket savedBasket = basketArgumentCaptor.getValue();
+    assertEquals(THE_HOBBIT_PRODUCT, savedBasket.getProductById(HOBBIT_PRODUCT_ID));
+    assertEquals(QUANTITY, savedBasket.getQuantityForProduct(HOBBIT_PRODUCT_ID));
   }
 
   @Test
   public void get_basket_for_userId_asks_repository() {
-    String userId = UUID.randomUUID().toString();
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(new Basket(CREATION_DATE,
-        userId)));
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.of(new Basket(CREATION_DATE,
+        USER_ID)));
 
-    service.basketFor(userId);
+    service.basketFor(USER_ID);
 
-    verify(repository).getBasketByUserId(userId);
+    verify(repository).getBasketByUserId(USER_ID);
   }
 
   @Test
   public void throws_basketNotFoundException_when_no_basket_is_found() {
-    String userId = UUID.randomUUID().toString();
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.empty());
 
-    assertThrows(BasketNotFoundException.class, () -> service.basketFor(userId));
+    assertThrows(BasketNotFoundException.class, () -> service.basketFor(USER_ID));
   }
 
   @Test
   public void sets_creation_date_of_basket() {
-    String userId = UUID.randomUUID().toString();
-    String productId = UUID.randomUUID().toString();
-    Product product = new Product(productId);
-    int quantity = 1;
+    given(productService.getProductById(HOBBIT_PRODUCT_ID)).willReturn(THE_HOBBIT_PRODUCT);
+    given(dateService.getDate()).willReturn(CREATION_DATE);
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.empty());
 
-    given(productService.getProductById(productId)).willReturn(product);
-    given(dateService.getDate()).willReturn("2020-07-12");
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
+    service.addItem(USER_ID, HOBBIT_PRODUCT_ID, QUANTITY);
 
-    service.addItem(userId, productId, quantity);
+    verify(repository).save(basketArgumentCaptor.capture());
+    Basket savedBasket = basketArgumentCaptor.getValue();
 
-    ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
-    ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(basketArgument.capture());
-    Basket savedBasket = basketArgument.getValue();
-
-    assertEquals("2020-07-12", savedBasket.creationDate);
+    assertEquals(CREATION_DATE, savedBasket.creationDate);
   }
 
   @Test
   public void logs_creation_date_on_new_basket() {
-    String userId = UUID.randomUUID().toString();
-    String productId = UUID.randomUUID().toString();
-    Product product = new Product(productId);
-    int quantity = 1;
+    given(productService.getProductById(HOBBIT_PRODUCT_ID)).willReturn(THE_HOBBIT_PRODUCT);
+    given(dateService.getDate()).willReturn(CREATION_DATE);
+    given(repository.getBasketByUserId(USER_ID)).willReturn(Optional.empty());
 
-    given(productService.getProductById(productId)).willReturn(product);
-    given(dateService.getDate()).willReturn("2020-07-12");
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.empty());
-
-    service.addItem(userId, productId, quantity);
+    service.addItem(USER_ID, HOBBIT_PRODUCT_ID, QUANTITY);
 
     verify(logService)
-        .basketCreationDate("2020-07-12", userId);
+        .basketCreationDate(CREATION_DATE, USER_ID);
   }
 
 }

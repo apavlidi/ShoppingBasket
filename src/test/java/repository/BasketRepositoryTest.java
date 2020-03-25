@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import domain.Basket;
 import domain.Product;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,19 +23,17 @@ class BasketRepositoryTest {
   @Test
   public void retrieve_basket_by_userId() {
     repo.save(basket);
-    Optional<Basket> basketOptional = repo.getBasketByUserId(USER_ID);
 
-    assertEquals(basket, basketOptional.get());
+    assertEquals(basket, repo.getBasketByUserId(USER_ID).get());
   }
 
   @Test
   public void saves_basket_based_on_userId() {
     basket.addItem(new Product(UUID.randomUUID().toString()),1);
+
     repo.save(basket);
 
-    Optional<Basket> basketOptional = repo.getBasketByUserId(USER_ID);
-
-    assertEquals(basket, basketOptional.get());
+    assertEquals(basket, repo.getBasketByUserId(USER_ID).get());
   }
 
 }

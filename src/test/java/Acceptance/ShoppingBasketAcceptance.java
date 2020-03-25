@@ -21,57 +21,55 @@ import service.ShoppingBasketService;
 @ExtendWith(MockitoExtension.class)
 public class ShoppingBasketAcceptance {
 
-  private ShoppingBasketService service;
+  public static final String USER_ID = UUID.randomUUID().toString();
+  public static final String THE_HOBBIT_PRODUCT_ID = "10002";
+  public static final String BREAKING_BAD_PRODUCT_ID = "20110";
 
   @Mock
   private DateService dateService;
 
-  public static final String USER_ID = UUID.randomUUID().toString();
-
   @Mock
+
   private Console console;
+  private ShoppingBasketService service;
 
   @BeforeEach
   public void setUp() {
-    BasketRepository basketRepo = new BasketRepository();
-    ProductService productService = new ProductService();
-    LogService logService = new LogService(console);
-
-    service = new ShoppingBasketService(basketRepo, productService, dateService, logService);
+    service = new ShoppingBasketService(new BasketRepository(), new ProductService(), dateService,
+        new LogService(console));
   }
-
 
   @Test
   public void check_basket_contents() {
-    service.addItem(USER_ID, "10002", 2);
-    service.addItem(USER_ID, "20110", 5);
+    service.addItem(USER_ID, THE_HOBBIT_PRODUCT_ID, 2);
+    service.addItem(USER_ID, BREAKING_BAD_PRODUCT_ID, 5);
 
     Basket basket = service.basketFor(USER_ID);
 
     assertEquals(7, basket.size());
-    assertEquals(2, basket.getQuantityForProduct("10002"));
-    assertEquals(5, basket.getQuantityForProduct("20110"));
+    assertEquals(2, basket.getQuantityForProduct(THE_HOBBIT_PRODUCT_ID));
+    assertEquals(5, basket.getQuantityForProduct(BREAKING_BAD_PRODUCT_ID));
   }
 
   @Test
   public void check_basket_creation_date() {
     given(dateService.getDate()).willReturn("2020-07-12");
-    service.addItem(USER_ID, "10002", 2);
-    service.addItem(USER_ID, "20110", 5);
+    service.addItem(USER_ID, THE_HOBBIT_PRODUCT_ID, 2);
+    service.addItem(USER_ID, BREAKING_BAD_PRODUCT_ID, 5);
 
     Basket basket = service.basketFor(USER_ID);
 
     assertEquals(7, basket.size());
     assertEquals("2020-07-12", basket.creationDate);
-    assertEquals(2, basket.getQuantityForProduct("10002"));
-    assertEquals(5, basket.getQuantityForProduct("20110"));
+    assertEquals(2, basket.getQuantityForProduct(THE_HOBBIT_PRODUCT_ID));
+    assertEquals(5, basket.getQuantityForProduct(BREAKING_BAD_PRODUCT_ID));
   }
 
   @Test
   public void check_basket_total_amount() {
     given(dateService.getDate()).willReturn("2020-07-12");
-    service.addItem(USER_ID, "10002", 2);
-    service.addItem(USER_ID, "20110", 5);
+    service.addItem(USER_ID, THE_HOBBIT_PRODUCT_ID, 2);
+    service.addItem(USER_ID, BREAKING_BAD_PRODUCT_ID, 5);
 
     Basket basket = service.basketFor(USER_ID);
 
@@ -81,7 +79,7 @@ public class ShoppingBasketAcceptance {
   @Test
   public void logs_creation_date_when_basket_is_created() {
     given(dateService.getDate()).willReturn("2020-07-12");
-    service.addItem(USER_ID, "20110", 5);
+    service.addItem(USER_ID, BREAKING_BAD_PRODUCT_ID, 5);
 
     service.basketFor(USER_ID);
 
@@ -94,16 +92,15 @@ public class ShoppingBasketAcceptance {
     String basketCreation = "2020-07-12";
     String itemAddedDate = "2020-08-14";
     given(dateService.getDate()).willReturn(basketCreation, itemAddedDate);
-    String productId = "20110";
     int quantity = 5;
-    service.addItem(USER_ID, productId, quantity);
+    service.addItem(USER_ID, BREAKING_BAD_PRODUCT_ID, quantity);
 
     service.basketFor(USER_ID);
 
     verify(console)
         .print(String.format(
             "[ITEM ADDED TO SHOPPING CART]: Added[%s], User[%s], Product[%s], Quantity[%s], Price[%s]",
-            itemAddedDate, USER_ID, productId, quantity, 7));
+            itemAddedDate, USER_ID, BREAKING_BAD_PRODUCT_ID, quantity, 7));
   }
 
 }
