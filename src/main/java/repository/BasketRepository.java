@@ -1,23 +1,25 @@
 package repository;
 
 import domain.Basket;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class BasketRepository {
 
-  Map<String, Basket> baskets;
+  List<Basket> baskets;
 
   public BasketRepository() {
-    this.baskets = new HashMap<>();
+    this.baskets = new ArrayList<>();
   }
 
   public Optional<Basket> getBasketByUserId(String userId) {
-    return Optional.ofNullable(baskets.get(userId));
+    return baskets.stream()
+        .filter(basket -> userId.equals(basket.getUserId()))
+        .findAny();
   }
 
-  public void save(String userId, Basket basket) {
-    baskets.put(userId, basket);
+  public void save(Basket basket) {
+    baskets.add(basket);
   }
 }

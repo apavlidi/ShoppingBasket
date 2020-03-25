@@ -18,12 +18,12 @@ class BasketRepositoryTest {
   @BeforeEach
   void setUp() {
     repo = new BasketRepository();
-    basket = new Basket("10/10/2020");
+    basket = new Basket("10/10/2020", USER_ID);
   }
 
   @Test
   public void retrieve_basket_by_userId() {
-    repo.save(USER_ID, basket);
+    repo.save(basket);
     Optional<Basket> basketOptional = repo.getBasketByUserId(USER_ID);
 
     assertEquals(basket, basketOptional.get());
@@ -32,7 +32,7 @@ class BasketRepositoryTest {
   @Test
   public void saves_basket_based_on_userId() {
     basket.addItem(new Product(UUID.randomUUID().toString()),1);
-    repo.save(USER_ID, basket);
+    repo.save(basket);
 
     Optional<Basket> basketOptional = repo.getBasketByUserId(USER_ID);
 

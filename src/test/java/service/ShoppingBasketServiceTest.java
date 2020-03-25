@@ -55,7 +55,7 @@ class ShoppingBasketServiceTest {
     int quantity = 1;
 
     Product product = new Product(productId);
-    Basket basket = new Basket(CREATION_DATE);
+    Basket basket = new Basket(CREATION_DATE, userId);
     given(productService.getProductById(productId)).willReturn(product);
     given(repository.getBasketByUserId(userId)).willReturn(Optional.of(basket));
 
@@ -66,7 +66,7 @@ class ShoppingBasketServiceTest {
 
     ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
     ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(userIdArgument.capture(), basketArgument.capture());
+    verify(repository).save(basketArgument.capture());
     Basket savedBasket = basketArgument.getValue();
     assertEquals(product, savedBasket.getProductById(productId));
     assertEquals(quantity, savedBasket.getQuantityForProduct(productId));
@@ -86,7 +86,7 @@ class ShoppingBasketServiceTest {
 
     ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
     ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(userIdArgument.capture(), basketArgument.capture());
+    verify(repository).save(basketArgument.capture());
     Basket savedBasket = basketArgument.getValue();
     assertEquals(product, savedBasket.getProductById(productId));
     assertEquals(quantity, savedBasket.getQuantityForProduct(productId));
@@ -95,7 +95,8 @@ class ShoppingBasketServiceTest {
   @Test
   public void get_basket_for_userId_asks_repository() {
     String userId = UUID.randomUUID().toString();
-    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(new Basket(CREATION_DATE)));
+    given(repository.getBasketByUserId(userId)).willReturn(Optional.of(new Basket(CREATION_DATE,
+        userId)));
 
     service.basketFor(userId);
 
@@ -125,7 +126,7 @@ class ShoppingBasketServiceTest {
 
     ArgumentCaptor<Basket> basketArgument = ArgumentCaptor.forClass(Basket.class);
     ArgumentCaptor<String> userIdArgument = ArgumentCaptor.forClass(String.class);
-    verify(repository).save(userIdArgument.capture(), basketArgument.capture());
+    verify(repository).save(basketArgument.capture());
     Basket savedBasket = basketArgument.getValue();
 
     assertEquals("2020-07-12", savedBasket.getCreationDate());

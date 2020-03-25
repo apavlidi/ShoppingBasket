@@ -8,8 +8,10 @@ public class Basket {
   private Map<String, Product> products;
   private Map<String, Integer> productsQuantity;
   private String creationDate;
+  private String userId;
 
-  public Basket(String creationDate) {
+  public Basket(String creationDate, String userId) {
+    this.userId = userId;
     this.products = new HashMap<>();
     this.productsQuantity = new HashMap<>();
     this.creationDate = creationDate;
@@ -41,5 +43,9 @@ public class Basket {
     return productsQuantity.keySet().stream()
         .mapToInt(productId -> products.get(productId).getPrice() * productsQuantity.get(productId))
         .sum();
+  }
+
+  public String getUserId() {
+    return this.userId;
   }
 }
