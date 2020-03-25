@@ -21,6 +21,10 @@ public class ShoppingBasketService {
     this.logService = logService;
   }
 
+  public Basket basketFor(String userId) {
+    return basketRepo.getBasketByUserId(userId).orElseThrow(BasketNotFoundException::new);
+  }
+
   public void addItem(String userId, String productId, int quantity) {
     basketRepo.getBasketByUserId(userId).ifPresentOrElse(
         addItemAndSave(productId, quantity),
@@ -42,12 +46,6 @@ public class ShoppingBasketService {
     };
   }
 
-  private Basket createBasket(String userId) {
-    Basket basket = new Basket(dateService.getDate(), userId);
-    logService.basketCreationDate(dateService.getDate(), userId);
-    return basket;
-  }
-
   private void addItemToBasket(String productId, int quantity, Basket basket) {
     Product product = productService.getProductById(productId);
     basket.addItem(product, quantity);
@@ -55,8 +53,10 @@ public class ShoppingBasketService {
         product.getPrice());
   }
 
-  public Basket basketFor(String userId) {
-    return basketRepo.getBasketByUserId(userId).orElseThrow(BasketNotFoundException::new);
+  private Basket createBasket(String userId) {
+    Basket basket = new Basket(dateService.getDate(), userId);
+    logService.basketCreationDate(dateService.getDate(), userId);
+    return basket;
   }
 
 }
