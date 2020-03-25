@@ -5,10 +5,11 @@ import java.util.Map;
 
 public class Basket {
 
+  public final String userId;
+  public final String creationDate;
+
   private Map<String, Product> products;
   private Map<String, Integer> productsQuantity;
-  private String creationDate;
-  private String userId;
 
   public Basket(String creationDate, String userId) {
     this.userId = userId;
@@ -35,17 +36,10 @@ public class Basket {
     productsQuantity.put(product.getId(), quantity);
   }
 
-  public String getCreationDate() {
-    return creationDate;
-  }
-
   public int getTotal() {
     return productsQuantity.keySet().stream()
         .mapToInt(productId -> products.get(productId).getPrice() * productsQuantity.get(productId))
         .sum();
   }
 
-  public String getUserId() {
-    return this.userId;
-  }
 }

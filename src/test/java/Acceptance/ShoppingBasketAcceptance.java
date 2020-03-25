@@ -62,7 +62,7 @@ public class ShoppingBasketAcceptance {
     Basket basket = service.basketFor(USER_ID);
 
     assertEquals(7, basket.size());
-    assertEquals("2020-07-12", basket.getCreationDate());
+    assertEquals("2020-07-12", basket.creationDate);
     assertEquals(2, basket.getQuantityForProduct("10002"));
     assertEquals(5, basket.getQuantityForProduct("20110"));
   }

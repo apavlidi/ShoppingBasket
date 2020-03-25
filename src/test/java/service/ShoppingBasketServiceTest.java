@@ -129,7 +129,7 @@ class ShoppingBasketServiceTest {
     verify(repository).save(basketArgument.capture());
     Basket savedBasket = basketArgument.getValue();
 
-    assertEquals("2020-07-12", savedBasket.getCreationDate());
+    assertEquals("2020-07-12", savedBasket.creationDate);
   }
 
   @Test

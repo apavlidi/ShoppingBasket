@@ -51,7 +51,7 @@ public class ShoppingBasketService {
   private void addItemToBasket(String productId, int quantity, Basket basket) {
     Product product = productService.getProductById(productId);
     basket.addItem(product, quantity);
-    logService.itemAdded(dateService.getDate(), basket.getUserId(), productId, quantity,
+    logService.itemAdded(dateService.getDate(), basket.userId, productId, quantity,
         product.getPrice());
   }
 

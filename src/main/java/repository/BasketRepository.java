@@ -15,7 +15,7 @@ public class BasketRepository {
 
   public Optional<Basket> getBasketByUserId(String userId) {
     return baskets.stream()
-        .filter(basket -> userId.equals(basket.getUserId()))
+        .filter(basket -> userId.equals(basket.userId))
         .findAny();
   }
 
